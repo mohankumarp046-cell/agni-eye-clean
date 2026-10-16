@@ -41,18 +41,24 @@ if uploaded_file is not None:
                 input_details = interpreter.get_input_details()
                 output_details = interpreter.get_output_details()
                 
-                # Get expected shape and type from model
                 input_shape = input_details[0]['shape']
                 input_dtype = input_details[0]['dtype']
                 
-                h, w = input_shape[1], input_shape[2]
-                img_resized = image.resize((w, h))
+                # Handle NCHW vs NHWC model format automatically
+                if input_shape[1] == 3:  # NCHW format [1, 3, H, W]
+                    h, w = input_shape[2], input_shape[3]
+                    img_resized = image.resize((w, h))
+                    img_array = np.array(img_resized, dtype=np.float32) / 255.0
+                    input_data = np.transpose(img_array, (2, 0, 1))  # Shape: (3, H, W)
+                    input_data = np.expand_dims(input_data, axis=0)     # Shape: (1, 3, H, W)
+                else:  # NHWC format [1, H, W, 3]
+                    h, w = input_shape[1], input_shape[2]
+                    img_resized = image.resize((w, h))
+                    img_array = np.array(img_resized, dtype=np.float32) / 255.0
+                    input_data = np.expand_dims(img_array, axis=0)     # Shape: (1, H, W, 3)
                 
-                # Prepare input data based on model expected dtype
-                if input_dtype == np.float32:
-                    input_data = np.expand_dims(np.array(img_resized, dtype=np.float32) / 255.0, axis=0)
-                else:
-                    input_data = np.expand_dims(np.array(img_resized, dtype=input_dtype), axis=0)
+                if input_dtype != np.float32:
+                    input_data = input_data.astype(input_dtype)
                 
                 interpreter.set_tensor(input_details[0]['index'], input_data)
                 interpreter.invoke()
