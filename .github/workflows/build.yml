@@ -6,34 +6,11 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
-
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.10'
-
-    - name: Install System Dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y \
-            python3-pip \
-            build-essential \
-            git \
-            python3-dev \
-            ccache \
-            libncurses5:i386 \
-            libstdc++6:i386 \
-            libgtk2.0-0 \
-            libunicodedata++-java \
-            zlib1g-dev
-
-    - name: Install Cython
-      run: pip install --upgrade pip cython==0.29.36
 
     - name: Build with Buildozer
       uses: ArtemSBulgakov/buildozer-action@v1
